@@ -38,6 +38,7 @@ public class EntityCodeGenerator {
     protected static final String INDENT = "    ";
     protected final Map<String, Map<String, StringBuilder>> moduleMap = new HashMap<>();
     protected final ObjectMapper objectMapper;
+    protected boolean asClass = false;
 
     public EntityCodeGenerator() {
         this.objectMapper = new ObjectMapper();
@@ -45,6 +46,16 @@ public class EntityCodeGenerator {
 
     public EntityCodeGenerator(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
+    }
+
+    public EntityCodeGenerator asClass() {
+        this.asClass = true;
+        return this;
+    }
+
+    public EntityCodeGenerator asInterface() {
+        this.asClass = false;
+        return this;
     }
 
     public EntityCodeGenerator readClass(Class<?>... classes) {
@@ -79,15 +90,16 @@ public class EntityCodeGenerator {
     }
 
     public Writer write(Writer writer) {
+        String declarationType = this.asClass ? "class" : "interface";
         try {
             for (Entry<String, Map<String, StringBuilder>> moduleEntry : moduleMap.entrySet()) {
                 String moduleName = moduleEntry.getKey();
-                writer.write("module " + moduleName + " {\n");
+                writer.write((this.asClass ? "" : "declare ") + "module " + moduleName + " {\n");
                 Map<String, StringBuilder> map = moduleEntry.getValue();
                 for (Entry<String, StringBuilder> classEntry : map.entrySet()) {
                     String className = classEntry.getKey();
                     StringBuilder builder = classEntry.getValue();
-                    writer.write(INDENT + "export class " + className + " ");
+                    writer.write(INDENT + "export " + declarationType + " " + className + " ");
                     writer.append(builder);
                 }
                 writer.write("\n}");

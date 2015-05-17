@@ -51,9 +51,17 @@ public class ExampleApp implements App {
     }
 
     public static void main(String[] args) {
-        new EntityCodeGenerator().readClass(Input.class, Result.class).writeFile(
-            "src/main/typescript/entities.ts"); // (1)
 
-        new Server().add(ExampleApp.class).listen(); // (2)
+        new EntityCodeGenerator()
+            .readClass(Input.class)
+            .asClass()
+            .writeFile("src/main/typescript/entities.ts"); // (1)
+
+        new EntityCodeGenerator()
+            .readClass(Result.class)
+            .asInterface()
+            .writeFile("src/main/typescript/typings/entities.d.ts"); // (2)
+
+        new Server().add(ExampleApp.class).listen(); // (3)
     }
 }

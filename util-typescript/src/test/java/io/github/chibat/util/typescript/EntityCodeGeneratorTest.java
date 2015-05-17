@@ -13,9 +13,9 @@ public class EntityCodeGeneratorTest {
     @Test
     public void test() throws IOException {
 
-        new EntityCodeGenerator(new ObjectMapper()).readClass(Foo.class).print();
+        new EntityCodeGenerator(new ObjectMapper()).readClass(Foo.class).asClass().print();
 
-        new EntityCodeGenerator().readClass(Foo.class).writeFile("aaa.d.ts");
+        // new EntityCodeGenerator().readClass(Foo.class).writeFile("aaa.d.ts");
 
         // generate(new ObjectMapper(), Bar.class);
         // generate(new ObjectMapper(), new Hoge<Bar>().getClass());
