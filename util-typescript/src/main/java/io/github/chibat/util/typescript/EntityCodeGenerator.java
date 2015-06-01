@@ -36,7 +36,7 @@ import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema.Items;
 public class EntityCodeGenerator {
 
     protected static final String INDENT = "    ";
-    protected final Map<String, Map<String, StringBuilder>> moduleMap = new HashMap<>();
+    protected final Map<String, Map<String, String>> moduleMap = new HashMap<>();
     protected final ObjectMapper objectMapper;
     protected boolean asClass = false;
 
@@ -92,15 +92,21 @@ public class EntityCodeGenerator {
     public Writer write(Writer writer) {
         String declarationType = this.asClass ? "class" : "interface";
         try {
-            for (Entry<String, Map<String, StringBuilder>> moduleEntry : moduleMap.entrySet()) {
+            for (Entry<String, Map<String, String>> moduleEntry : moduleMap.entrySet()) {
                 String moduleName = moduleEntry.getKey();
-                writer.write((this.asClass ? "" : "declare ") + "module " + moduleName + " {\n");
-                Map<String, StringBuilder> map = moduleEntry.getValue();
-                for (Entry<String, StringBuilder> classEntry : map.entrySet()) {
+                writer.write((this.asClass ? "\n" : "\ndeclare ") + "module " + moduleName + " {");
+                Map<String, String> map = moduleEntry.getValue();
+                for (Entry<String, String> classEntry : map.entrySet()) {
                     String className = classEntry.getKey();
-                    StringBuilder builder = classEntry.getValue();
-                    writer.write(INDENT + "export " + declarationType + " " + className + " ");
-                    writer.append(builder);
+                    String classCode = classEntry.getValue();
+                    writer.write("\n"
+                        + INDENT
+                        + "export "
+                        + declarationType
+                        + " "
+                        + className
+                        + " ");
+                    writer.append(classCode);
                 }
                 writer.write("\n}");
             }
@@ -120,16 +126,20 @@ public class EntityCodeGenerator {
         int indent = 1;
         StringBuilder builder = new StringBuilder();
         generate(builder, indent, visitor.finalSchema());
+        String classCode = builder.toString();
+        if (" any".equals(classCode)) {
+            return;
+        }
         String canonicalName = clazz.getCanonicalName();
         String name = canonicalName == null ? clazz.getName() : canonicalName;
         String moduleName = name.substring(0, name.lastIndexOf('.'));
         String className = name.substring(name.lastIndexOf('.') + 1);
-        Map<String, StringBuilder> classMap = moduleMap.get(moduleName);
+        Map<String, String> classMap = moduleMap.get(moduleName);
         if (classMap == null) {
             classMap = new HashMap<>();
             moduleMap.put(moduleName, classMap);
         }
-        classMap.put(className, builder);
+        classMap.put(className, classCode);
     }
 
     protected void generate(StringBuilder builder, int indent, JsonSchema jsonSchema) {
@@ -147,7 +157,7 @@ public class EntityCodeGenerator {
             }
             indent--;
             indent(builder, indent);
-            builder.append("}\n");
+            builder.append("}");
         } else if (jsonSchema.isArraySchema()) {
             Items items = jsonSchema.asArraySchema().getItems();
             if (items.isSingleItems()) {
